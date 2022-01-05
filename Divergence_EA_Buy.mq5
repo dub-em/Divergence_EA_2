@@ -23,21 +23,22 @@ input int interval = 30;
 input double ls = 0.04;
 input double slippage = 40;
 input int lotlimit = 100;
+input int unif_tp = 60;
+input double mult_fact = 2;
 int macd_min = 0;
 int price_min = 0;
-double lot = 0;
+double lot_buy = 0;
 double newLot_buy = 0;
-double mult_fact = 2;
 int numofmultiples_buy = 0;
 int identifier_buy = 0;
-double loop = 0;
+double loop_buy = 0;
 int num_firstlot = 1;
 double multiplier = 100000;
-int lineCounter = 1;
+int lineCounter_buy = 1;
 
 double macdlow[2] = {0, 0};
 double pricelow[2] = {0, 0};
-datetime times[2] = {0, 0};
+datetime timeslow[2] = {0, 0};
 
 double first_buy = 0;
 double thrd_highestlot_buy = 0;
@@ -78,7 +79,7 @@ void checkDivergenceBuy(){
       }
       if((num_2 <= num_firstlot) && ((highestlot_buy - interval*_Point) >= Ask)){
          //call the function and pass the following arguments into it
-         trade.Buy(lot, NULL, Ask, NULL, firstTP, NULL);
+         trade.Buy(lot_buy, NULL, Ask, NULL, firstTP, NULL);
          thrd_highestlot_buy = sec_highestlot_buy;
          sec_highestlot_buy = highestlot_buy;
          highestlot_buy = Ask;
@@ -112,9 +113,9 @@ void checkDivergenceBuy(){
                      newLot_buy = PositionGetDouble(POSITION_VOLUME);
                      newLot_buy = newLot_buy*mult_fact;
                      identifier_buy = numofmultiples_buy+1;
-                     loop = MathCeil(newLot_buy/lotlimit);
-                     for(int i=1; i<=loop; i++){
-                        if(i == loop){
+                     loop_buy = MathCeil(newLot_buy/lotlimit);
+                     for(int i=1; i<=loop_buy; i++){
+                        if(i == loop_buy){
                            double lastLot_buy = newLot_buy - (lotlimit * (i-1));
                            trade.Buy(NormalizeDouble(lastLot_buy, 2), NULL, Ask, NULL, NULL, identifier_buy);
                         }else{
@@ -130,10 +131,10 @@ void checkDivergenceBuy(){
                      if (numofmultiples_buy > 0){
                         newLot_buy = newLot_buy*mult_fact;
                         identifier_buy = numofmultiples_buy+1;
-                        loop = MathCeil(newLot_buy/lotlimit);
-                        for(int i=1; i<=loop; i++){
-                           if(i == loop){
-                              double lastLot_buy = newLot_buy - (lotlimit * (loop-1));
+                        loop_buy = MathCeil(newLot_buy/lotlimit);
+                        for(int i=1; i<=loop_buy; i++){
+                           if(i == loop_buy){
+                              double lastLot_buy = newLot_buy - (lotlimit * (loop_buy-1));
                               trade.Buy(NormalizeDouble(lastLot_buy, 2), NULL, Ask, NULL, NULL, identifier_buy);
                            }else{
                               trade.Buy(lotlimit, NULL, Ask, NULL, NULL, identifier_buy);
@@ -158,8 +159,8 @@ void checkDivergenceBuy(){
          if ((pricelow[1] < pricelow[0]) && (macdlow[1] > macdlow[0])){
             //Checks for Regular Divergence
             numofmultiples_buy = 0;
-            lot = ls;
-            trade.Buy(lot, NULL, Ask, NULL, NULL, NULL);
+            lot_buy = ls;
+            trade.Buy(lot_buy, NULL, Ask, NULL, NULL, NULL);
                
             lowarray_update();
                
@@ -190,8 +191,8 @@ void checkDivergenceBuy(){
          }else if((pricelow[1] > pricelow[0]) && (macdlow[1] < macdlow[0])){
             //Checks for Hidden Divergence
             numofmultiples_buy = 0;
-            lot = ls;
-            trade.Buy(lot, NULL, Ask, NULL, NULL, NULL);
+            lot_buy = ls;
+            trade.Buy(lot_buy, NULL, Ask, NULL, NULL, NULL);
                
             lowarray_update();
                
@@ -236,18 +237,18 @@ void lowpoint_search(){
       pricelow_array[0] = PriceInfo[0].low; pricelow_array[1] = PriceInfo[1].low; pricelow_array[2] = PriceInfo[2].low;
       pricelow_array[3] = PriceInfo[3].low; pricelow_array[4] = PriceInfo[4].low;
       
-      double macdLineArray[];  
-      ArraySetAsSeries(macdLineArray, true);
+      double macdLineArray_buy[];  
+      ArraySetAsSeries(macdLineArray_buy, true);
       //CopyBuffer(macd,0,1,5, macdLineArray); //MACD Bars
          
-      CopyBuffer(macd,1,1,5, macdLineArray); //MACD Moving Avg
-      macd_min = ArrayMinimum(macdLineArray, 0, WHOLE_ARRAY);
+      CopyBuffer(macd,1,1,5, macdLineArray_buy); //MACD Moving Avg
+      macd_min = ArrayMinimum(macdLineArray_buy, 0, WHOLE_ARRAY);
       price_min = ArrayMinimum(pricelow_array, 0, WHOLE_ARRAY);
          
-      if ((macdLineArray[2] == macdLineArray[macd_min]) && (macdLineArray[macd_min] < 0)){
-         macdlow[0] = macdLineArray[2];
+      if ((macdLineArray_buy[2] == macdLineArray_buy[macd_min]) && (macdLineArray_buy[macd_min] < 0)){
+         macdlow[0] = macdLineArray_buy[2];
          pricelow[0] = pricelow_array[price_min];
-         times[0] = PriceInfo[price_min].time;
+         timeslow[0] = PriceInfo[price_min].time;
       }     
    }else{
       MqlRates PriceInfo[];
@@ -256,21 +257,21 @@ void lowpoint_search(){
       pricelow_array[0] = PriceInfo[0].low; pricelow_array[1] = PriceInfo[1].low; pricelow_array[2] = PriceInfo[2].low;
       pricelow_array[3] = PriceInfo[3].low; pricelow_array[4] = PriceInfo[4].low;
       
-      double macdLineArray[];  
-      ArraySetAsSeries(macdLineArray, true);
+      double macdLineArray_buy[];  
+      ArraySetAsSeries(macdLineArray_buy, true);
       //CopyBuffer(macd,0,1,5, macdLineArray); //MACD Bars
       
-      CopyBuffer(macd,1,1,5, macdLineArray); //MACD Moving Avg  
-      macd_min = ArrayMinimum(macdLineArray, 0, WHOLE_ARRAY);
+      CopyBuffer(macd,1,1,5, macdLineArray_buy); //MACD Moving Avg  
+      macd_min = ArrayMinimum(macdLineArray_buy, 0, WHOLE_ARRAY);
       price_min = ArrayMinimum(pricelow_array, 0, WHOLE_ARRAY);
          
-      if ((macdLineArray[2] == macdLineArray[macd_min]) && (macdLineArray[macd_min] < 0)){
-         macdlow[1] = macdLineArray[2];
+      if ((macdLineArray_buy[2] == macdLineArray_buy[macd_min]) && (macdLineArray_buy[macd_min] < 0)){
+         macdlow[1] = macdLineArray_buy[2];
          pricelow[1] = pricelow_array[price_min];
-         times[1] = PriceInfo[price_min].time;
-         string lineName = "TrendLine_"+ lineCounter;
-         ObjectCreate(_Symbol, lineName, OBJ_TREND, 0 , times[0], pricelow[0], times[1], pricelow[1]);
-         lineCounter++;
+         timeslow[1] = PriceInfo[price_min].time;
+         string lineName_buy = "TrendLine_"+ lineCounter_buy;
+         ObjectCreate(_Symbol, lineName_buy, OBJ_TREND, 0 , timeslow[0], pricelow[0], timeslow[1], pricelow[1]);
+         lineCounter_buy++;
          if ((PriceInfo[price_min].low + slippage*_Point) < Ask){
             lowarray_update();   
          }
@@ -283,12 +284,12 @@ void lowarray_update(){
    macdlow[1] = 0;
    pricelow[0] = pricelow[1];
    pricelow[1] = 0;
-   times[0] = times[1];
-   times[1] = 0;
+   timeslow[0] = timeslow[1];
+   timeslow[1] = 0;
 }
 
 void uniformPointCalculator_buy(){
-   double nextTPSL = sec_highestlot_buy + 60*_Point;   
+   double nextTPSL = sec_highestlot_buy + unif_tp*_Point;   
    double Ask=NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_ASK), _Digits);
    
    //loop through all positions that are currently open
@@ -307,4 +308,25 @@ void uniformPointCalculator_buy(){
    }    
 }
 
-
+/*
+void uniformPointCalculator_buy(){
+   double nextTPSL = 56.231777683731956 + 0.3434495*(MathAbs(highestlot_buy-thrd_highestlot_buy)*multiplier) + 0.03663685*(MathAbs(sec_highestlot_buy-thrd_highestlot_buy)*multiplier) + 0.30681265*(MathAbs(highestlot_buy-sec_highestlot_buy)*multiplier) + 0.01972324*(MathAbs(highestlot_buy-first_buy)*multiplier);  
+   nextTPSL = highestlot_buy + nextTPSL*_Point;
+   double Ask=NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_ASK), _Digits);
+   
+   //loop through all positions that are currently open
+   for(int i = PositionsTotal()-1; i >= 0; i--){
+      //get the details from the current position such as opening price, lot size, and position id 
+      //so we can modify it
+      string symbols = PositionGetSymbol(i);
+      if((PositionGetInteger(POSITION_TYPE) == ORDER_TYPE_BUY) && (PositionGetInteger(POSITION_MAGIC) == thisEAMagicNumber)){
+         ulong posTicket = PositionGetInteger(POSITION_TICKET);
+         if (Ask > nextTPSL){
+            trade.PositionClose(posTicket);
+         }else{
+            trade.PositionModify(posTicket, 0, nextTPSL);
+         }
+      }        
+   }    
+}
+*/

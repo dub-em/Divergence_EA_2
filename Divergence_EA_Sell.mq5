@@ -23,21 +23,22 @@ input int interval = 30;
 input double ls = 0.04;
 input double slippage = 40;
 input int lotlimit = 100;
+input int unif_tp = 60;
+input double mult_fact = 2;
 int macd_max = 0;
 int price_max = 0;
-double lot = 0;
+double lot_sell = 0;
 double newLot_sell = 0;
-double mult_fact = 2;
 int numofmultiples_sell = 0;
 int identifier_sell = 0;
-double loop = 0;
+double loop_sell = 0;
 int num_firstlot = 1;
 double multiplier = 100000;
-int lineCounter = 1;
+int lineCounter_sell = 1;
 
 double macdhigh[2] = {0, 0};
 double pricehigh[2] = {0, 0};
-datetime times[2] = {0, 0};
+datetime timeshigh[2] = {0, 0};
 
 double first_sell = 0;
 double thrd_highestlot_sell = 0;
@@ -79,7 +80,7 @@ void checkDivergenceSell(){
       // check if trades open is only one then call the function to open the second position
       if((num_2 <= num_firstlot)&&((highestlot_sell + interval*_Point) <= Bid)){
          //call the function and pass the following arguments into it
-         trade.Sell(lot, NULL, Bid, NULL, firstTP, NULL);
+         trade.Sell(lot_sell, NULL, Bid, NULL, firstTP, NULL);
          thrd_highestlot_sell = sec_highestlot_sell;
          sec_highestlot_sell = highestlot_sell;
          highestlot_sell = Bid;
@@ -114,9 +115,9 @@ void checkDivergenceSell(){
                      newLot_sell = PositionGetDouble(POSITION_VOLUME);
                      newLot_sell = newLot_sell*mult_fact;
                      identifier_sell = numofmultiples_sell+1;
-                     loop = MathCeil(newLot_sell/lotlimit);
-                     for(int i=1; i<=loop; i++){
-                        if(i == loop){
+                     loop_sell = MathCeil(newLot_sell/lotlimit);
+                     for(int i=1; i<=loop_sell; i++){
+                        if(i == loop_sell){
                            double lastLot_sell = newLot_sell - (lotlimit * (i-1));
                            trade.Sell(NormalizeDouble(lastLot_sell, 2), NULL, Bid, NULL, NULL, identifier_sell);
                         }else{
@@ -132,10 +133,10 @@ void checkDivergenceSell(){
                      if (numofmultiples_sell > 0){
                         newLot_sell = newLot_sell*mult_fact;
                         identifier_sell = numofmultiples_sell+1;
-                        loop = MathCeil(newLot_sell/lotlimit);
-                        for(int i=1; i<=loop; i++){
-                           if(i == loop){
-                              double lastLot_sell = newLot_sell - (lotlimit * (loop-1));
+                        loop_sell = MathCeil(newLot_sell/lotlimit);
+                        for(int i=1; i<=loop_sell; i++){
+                           if(i == loop_sell){
+                              double lastLot_sell = newLot_sell - (lotlimit * (loop_sell-1));
                               trade.Sell(NormalizeDouble(lastLot_sell, 2), NULL, Bid, NULL, NULL, identifier_sell);
                            }else{
                               trade.Sell(lotlimit, NULL, Bid, NULL, NULL, identifier_sell);
@@ -160,8 +161,8 @@ void checkDivergenceSell(){
          if ((pricehigh[1] > pricehigh[0]) && (macdhigh[1] < macdhigh[0])){
             //Checks for Regular Divergence
             numofmultiples_sell = 0;
-            lot = ls;
-            trade.Sell(lot, NULL, Bid, NULL, NULL, NULL);
+            lot_sell = ls;
+            trade.Sell(lot_sell, NULL, Bid, NULL, NULL, NULL);
                
             higharray_update();
                
@@ -192,8 +193,8 @@ void checkDivergenceSell(){
          }else if((pricehigh[1] < pricehigh[0]) && (macdhigh[1] > macdhigh[0])){
             //Checks for Hidden Divergence
             numofmultiples_sell = 0;
-            lot = ls;
-            trade.Sell(lot, NULL, Bid, NULL, NULL, NULL);
+            lot_sell = ls;
+            trade.Sell(lot_sell, NULL, Bid, NULL, NULL, NULL);
                
             higharray_update();
                
@@ -238,18 +239,18 @@ void highpoint_search(){
       pricehigh_array[0] = PriceInfo[0].high; pricehigh_array[1] = PriceInfo[1].high; pricehigh_array[2] = PriceInfo[2].high;
       pricehigh_array[3] = PriceInfo[3].high; pricehigh_array[4] = PriceInfo[4].high;
       
-      double macdLineArray[];  
-      ArraySetAsSeries(macdLineArray, true);
+      double macdLineArray_sell[];  
+      ArraySetAsSeries(macdLineArray_sell, true);
       //CopyBuffer(macd,0,1,5, macdLineArray); //MACD Bars
          
-      CopyBuffer(macd,1,1,5, macdLineArray); //MACD Moving Avg
-      macd_max = ArrayMaximum(macdLineArray, 0, WHOLE_ARRAY);
+      CopyBuffer(macd,1,1,5, macdLineArray_sell); //MACD Moving Avg
+      macd_max = ArrayMaximum(macdLineArray_sell, 0, WHOLE_ARRAY);
       price_max = ArrayMaximum(pricehigh_array, 0, WHOLE_ARRAY);
          
-      if ((macdLineArray[2] == macdLineArray[macd_max]) && (macdLineArray[macd_max] > 0)){
-         macdhigh[0] = macdLineArray[2];
+      if ((macdLineArray_sell[2] == macdLineArray_sell[macd_max]) && (macdLineArray_sell[macd_max] > 0)){
+         macdhigh[0] = macdLineArray_sell[2];
          pricehigh[0] = pricehigh_array[price_max];
-         times[0] = PriceInfo[price_max].time;
+         timeshigh[0] = PriceInfo[price_max].time;
       }     
    }else{
       MqlRates PriceInfo[];
@@ -258,21 +259,21 @@ void highpoint_search(){
       pricehigh_array[0] = PriceInfo[0].high; pricehigh_array[1] = PriceInfo[1].high; pricehigh_array[2] = PriceInfo[2].high;
       pricehigh_array[3] = PriceInfo[3].high; pricehigh_array[4] = PriceInfo[4].high;
       
-      double macdLineArray[];  
-      ArraySetAsSeries(macdLineArray, true);
+      double macdLineArray_sell[];  
+      ArraySetAsSeries(macdLineArray_sell, true);
       //CopyBuffer(macd,0,1,5, macdLineArray); //MACD Bars
       
-      CopyBuffer(macd,1,1,5, macdLineArray); //MACD Moving Avg  
-      macd_max = ArrayMaximum(macdLineArray, 0, WHOLE_ARRAY);
+      CopyBuffer(macd,1,1,5, macdLineArray_sell); //MACD Moving Avg  
+      macd_max = ArrayMaximum(macdLineArray_sell, 0, WHOLE_ARRAY);
       price_max = ArrayMaximum(pricehigh_array, 0, WHOLE_ARRAY);
          
-      if ((macdLineArray[2] == macdLineArray[macd_max]) && (macdLineArray[macd_max] > 0)){
-         macdhigh[1] = macdLineArray[2];
+      if ((macdLineArray_sell[2] == macdLineArray_sell[macd_max]) && (macdLineArray_sell[macd_max] > 0)){
+         macdhigh[1] = macdLineArray_sell[2];
          pricehigh[1] = pricehigh_array[price_max];
-         times[1] = PriceInfo[price_max].time;
-         string lineName = "TrendLine_"+ lineCounter;
-         ObjectCreate(_Symbol, lineName, OBJ_TREND, 0 , times[0], pricehigh[0], times[1], pricehigh[1]);
-         lineCounter++;
+         timeshigh[1] = PriceInfo[price_max].time;
+         string lineName_sell = "TrendLine_"+ lineCounter_sell;
+         ObjectCreate(_Symbol, lineName_sell, OBJ_TREND, 0 , timeshigh[0], pricehigh[0], timeshigh[1], pricehigh[1]);
+         lineCounter_sell++;
          if ((PriceInfo[price_max].high - slippage*_Point) > Ask){
             higharray_update();   
          }
@@ -285,12 +286,12 @@ void higharray_update(){
    macdhigh[1] = 0;
    pricehigh[0] = pricehigh[1];
    pricehigh[1] = 0;
-   times[0] = times[1];
-   times[1] = 0;
+   timeshigh[0] = timeshigh[1];
+   timeshigh[1] = 0;
 }
 
 void uniformPointCalculator_sell(){
-   double nextTPSL = sec_highestlot_sell - 60*_Point;   
+   double nextTPSL = sec_highestlot_sell - unif_tp*_Point;   
    double Bid = NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_BID), _Digits);  
    
    //loop through all positions that are currently open
@@ -308,5 +309,28 @@ void uniformPointCalculator_sell(){
       }        
    }    
 }
+
+/*
+void uniformPointCalculator_sell(){
+   double nextTPSL = 56.231777683731956 + 0.3434495*(MathAbs(highestlot_sell-thrd_highestlot_sell)*multiplier) + 0.03663685*(MathAbs(sec_highestlot_sell-thrd_highestlot_sell)*multiplier) + 0.30681265*(MathAbs(highestlot_sell-sec_highestlot_sell)*multiplier) + 0.01972324*(MathAbs(highestlot_sell-first_sell)*multiplier);  
+   nextTPSL = highestlot_sell - nextTPSL*_Point;
+   double Bid = NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_BID), _Digits);  
+   
+   //loop through all positions that are currently open
+   for(int i = PositionsTotal()-1; i >= 0; i--){
+      //get the details from the current position such as opening price, lot size, and position id 
+      //so we can modify it
+      string symbols = PositionGetSymbol(i);
+      if((PositionGetInteger(POSITION_TYPE) == ORDER_TYPE_SELL) && (PositionGetInteger(POSITION_MAGIC) == thisEAMagicNumber)){
+         ulong posTicket = PositionGetInteger(POSITION_TICKET);
+         if (Bid < nextTPSL){
+            trade.PositionClose(posTicket);
+         }else{
+            trade.PositionModify(posTicket, 0, nextTPSL);
+         }
+      }        
+   }    
+}
+*/
 
 
