@@ -25,6 +25,9 @@ input double slippage = 40;
 input int lotlimit = 100;
 input int unif_tp = 60;
 input double mult_fact = 2;
+input int num_firstlot = 1;
+double multiplier = 100000;
+
 int macd_max = 0;
 int price_max = 0;
 double lot_sell = 0;
@@ -32,8 +35,6 @@ double newLot_sell = 0;
 int numofmultiples_sell = 0;
 int identifier_sell = 0;
 double loop_sell = 0;
-int num_firstlot = 1;
-double multiplier = 100000;
 int lineCounter_sell = 1;
 
 double macdhigh[2] = {0, 0};

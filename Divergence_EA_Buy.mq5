@@ -25,6 +25,9 @@ input double slippage = 40;
 input int lotlimit = 100;
 input int unif_tp = 60;
 input double mult_fact = 2;
+input int num_firstlot = 1;
+double multiplier = 100000;
+
 int macd_min = 0;
 int price_min = 0;
 double lot_buy = 0;
@@ -32,8 +35,6 @@ double newLot_buy = 0;
 int numofmultiples_buy = 0;
 int identifier_buy = 0;
 double loop_buy = 0;
-int num_firstlot = 1;
-double multiplier = 100000;
 int lineCounter_buy = 1;
 
 double macdlow[2] = {0, 0};
