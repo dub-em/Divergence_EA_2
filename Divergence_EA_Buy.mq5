@@ -80,10 +80,11 @@ void checkDivergenceBuy(){
       }
       if((num_2 <= num_firstlot) && ((highestlot_buy - interval*_Point) >= Ask)){
          //call the function and pass the following arguments into it
-         trade.Buy(lot_buy, NULL, Ask, NULL, firstTP, NULL);
+         trade.Buy(lot_buy, NULL, Ask, NULL, NULL, NULL);
          thrd_highestlot_buy = sec_highestlot_buy;
          sec_highestlot_buy = highestlot_buy;
          highestlot_buy = Ask;
+         uniformPointCalculator_buy();
       }else{
          // check if trades open is greater than or equals to two, then call the function to open subsequent positions
          for(int i = PositionsTotal()-1; i >= 0; i--){ 

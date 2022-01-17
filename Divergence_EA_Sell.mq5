@@ -81,10 +81,11 @@ void checkDivergenceSell(){
       // check if trades open is only one then call the function to open the second position
       if((num_2 <= num_firstlot)&&((highestlot_sell + interval*_Point) <= Bid)){
          //call the function and pass the following arguments into it
-         trade.Sell(lot_sell, NULL, Bid, NULL, firstTP, NULL);
+         trade.Sell(lot_sell, NULL, Bid, NULL, NULL, NULL);
          thrd_highestlot_sell = sec_highestlot_sell;
          sec_highestlot_sell = highestlot_sell;
          highestlot_sell = Bid;
+         uniformPointCalculator_sell();
       }else{
          // check if trades open is greater than or equals to two, then call the function to open subsequent positions
          for(int i = PositionsTotal()-1; i >= 0; i--){ 
