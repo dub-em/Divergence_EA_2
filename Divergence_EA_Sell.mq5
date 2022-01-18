@@ -293,7 +293,8 @@ void higharray_update(){
 }
 
 void uniformPointCalculator_sell(){
-   double nextTPSL = sec_highestlot_sell - unif_tp*_Point;   
+   double nextTPSL = sec_highestlot_sell - unif_tp*_Point;
+   nextTPSL = bestTp_sell(nextTPSL);   
    double Bid = NormalizeDouble(SymbolInfoDouble(_Symbol, SYMBOL_BID), _Digits);  
    
    //loop through all positions that are currently open
@@ -336,3 +337,20 @@ void uniformPointCalculator_sell(){
 */
 
 
+double bestTp_sell(double currentTp){
+   double sum = 0; double add = 0;
+   double finalAmountAtClose = 0;
+   do{
+      sum = 0;
+      currentTp = NormalizeDouble((currentTp - (add)*_Point), 5);
+      for(int i = PositionsTotal()-1; i >= 0; i--){
+         string symbols = PositionGetSymbol(i);
+         if((PositionGetInteger(POSITION_TYPE) == ORDER_TYPE_SELL) && (PositionGetInteger(POSITION_MAGIC) == thisEAMagicNumber)){
+            finalAmountAtClose += ((PositionGetDouble(POSITION_PRICE_OPEN) - currentTp)*10000) * (PositionGetDouble(POSITION_VOLUME)*10);
+         }
+      }
+      add += 50;
+   }while(finalAmountAtClose < 1 && !IsStopped());
+   
+   return currentTp;
+}
